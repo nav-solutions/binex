@@ -1,11 +1,11 @@
 # BINEX
 
-[![Rust](https://github.com/rtk-rs/binex/actions/workflows/rust.yml/badge.svg)](https://github.com/rtk-rs/binex/actions/workflows/rust.yml)
-[![Rust](https://github.com/rtk-rs/binex/actions/workflows/daily.yml/badge.svg)](https://github.com/rtk-rs/binex/actions/workflows/daily.yml) [![crates.io](https://img.shields.io/crates/v/binex.svg)](https://crates.io/crates/binex) 
+[![Rust](https://github.com/nav-solutions/binex/actions/workflows/rust.yml/badge.svg)](https://github.com/nav-solutions/binex/actions/workflows/rust.yml)
+[![Rust](https://github.com/nav-solutions/binex/actions/workflows/daily.yml/badge.svg)](https://github.com/nav-solutions/binex/actions/workflows/daily.yml) [![crates.io](https://img.shields.io/crates/v/binex.svg)](https://crates.io/crates/binex) 
 [![crates.io](https://docs.rs/binex/badge.svg)](https://docs.rs/binex/badge.svg)
 
 [![MRSV](https://img.shields.io/badge/MSRV-1.82.0-orange?style=for-the-badge)](https://github.com/rust-lang/rust/releases/tag/1.82.0)
-[![License](https://img.shields.io/badge/license-MPL_2.0-orange?style=for-the-badge&logo=mozilla)](https://github.com/rtk-rs/binex/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/license-MPL_2.0-orange?style=for-the-badge&logo=mozilla)](https://github.com/nav-solutions/binex/blob/main/LICENSE)
 
 BINEX is a simple library to decode and encode BINEX messages.  
 BINEX stands for BINary EXchange and is the "real time" stream oriented
@@ -108,5 +108,5 @@ streamed into a `Writable` interface:
 License
 =======
 
-This library is part of the [RTK-rs framework](https://github.com/rtk-rs) which
+This library is part of the [NAV-Solutions framework](https://github.com/nav-solutions) which
 is delivered under the [Mozilla V2 Public](https://www.mozilla.org/en-US/MPL/2.0) license.

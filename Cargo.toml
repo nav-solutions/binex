@@ -1,11 +1,11 @@
 [package]
 name = "binex"
-version = "0.5.0"
+version = "0.5.1"
 license = "MPL-2.0"
 authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
-description = "BINEX (Binary EXchange) encoder and decoder for real-time GNSS"
-homepage = "https://github.com/rtk-rs"
-repository = "https://github.com/rtk-rs/binex"
+description = "BINEX encoder and decoder for real-time GNSS"
+homepage = "https://github.com/nav-solutions"
+repository = "https://github.com/nav-solutions/binex"
 keywords = ["geo", "gps", "galileo"]
 categories = ["science", "science::geo", "parsing"]
 edition = "2021"
