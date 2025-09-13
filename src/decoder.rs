@@ -10,8 +10,11 @@ use crate::prelude::{ClosedSourceElement, Error, Message, StreamElement};
 
 /// Abstraction for Plain or Compressed [R]
 enum Reader<R: Read> {
+    /// [Read]able stream
     Plain(R),
+
     #[cfg(feature = "flate2")]
+    /// Gzip compressed stream
     Compressed(GzDecoder<R>),
 }
 

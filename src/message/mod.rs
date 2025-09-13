@@ -5,7 +5,7 @@ mod record; // Record: message content
 mod time; // Epoch encoding/decoding // checksum calc.
 
 pub use record::{
-    EphemerisFrame, GALEphemeris, GLOEphemeris, GPSEphemeris, GPSRaw, GeoStringFrame,
+    EphemerisFrame, GalEphemeris, GeoStringFrame, GloEphemeris, GpsEphemeris, GpsRaw,
     MonumentGeoMetadata, MonumentGeoRecord, PositionEcef3d, PositionGeo3d, Record, SBASEphemeris,
     Solutions, SolutionsFrame, TemporalSolution, Velocity3d, VelocityNED3d,
 };
@@ -19,9 +19,10 @@ use checksum::Checksum;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Message {
-    /// [Meta] data
+    /// Message [Meta]data
     pub meta: Meta,
-    /// [Record]
+
+    /// Message [Record]
     pub record: Record,
 }
 
@@ -39,8 +40,7 @@ impl Message {
         Self { meta, record }
     }
 
-    /// Returns total size required to encode this [Message].
-    /// Use this to fulfill [Self::encode] requirements.
+    /// Returns total number of bytes required to encode this [Message].
     pub fn encoding_size(&self) -> usize {
         let mut total = 1; // SYNC
 
@@ -59,11 +59,13 @@ impl Message {
         total
     }
 
-    /// [Message] decoding attempt from buffered content.
-    /// Buffer must contain sync byte and the following frame must match
-    /// the specification if an open source BINEX [Message].
-    /// For closed source [Message]s, we return [Error::ClosedSourceMessage]
-    /// with header information.
+    /// [Message] decoding attempt from read-only buffer.
+    ///
+    /// This method can only parse complete messages.
+    /// The beggining of a message is marked by the sync byte.
+    /// After that, we may have an official BINEX message,
+    /// or a closed source message, both share the standard [Meta]data
+    /// but the closed source message cannot be interpreted by this library.
     pub fn decode(buf: &[u8]) -> Result<Self, Error> {
         let buf_len = buf.len();
 
@@ -423,7 +425,7 @@ impl Message {
 mod test {
     use super::Message;
     use crate::message::{
-        EphemerisFrame, GALEphemeris, GPSEphemeris, GPSRaw, Meta, MonumentGeoMetadata,
+        EphemerisFrame, GalEphemeris, GpsEphemeris, GpsRaw, Meta, MonumentGeoMetadata,
         MonumentGeoRecord, PositionEcef3d, Record, Solutions, SolutionsFrame, Velocity3d,
     };
     use crate::prelude::Epoch;
@@ -612,7 +614,7 @@ mod test {
         meta.big_endian = true;
         meta.enhanced_crc = false;
 
-        let gps_raw = EphemerisFrame::GPSRaw(GPSRaw::default());
+        let gps_raw = EphemerisFrame::GpsRaw(GpsRaw::default());
         let gps_raw_len = gps_raw.encoding_size();
         let record = Record::new_ephemeris_frame(gps_raw);
 
@@ -639,7 +641,7 @@ mod test {
         meta.big_endian = true;
         meta.enhanced_crc = false;
 
-        let gps_eph = EphemerisFrame::GPS(GPSEphemeris::default());
+        let gps_eph = EphemerisFrame::GPS(GpsEphemeris::default());
         let gps_eph_len = gps_eph.encoding_size();
         let record = Record::new_ephemeris_frame(gps_eph);
 
@@ -666,7 +668,7 @@ mod test {
         meta.big_endian = true;
         meta.enhanced_crc = false;
 
-        let eph = EphemerisFrame::GAL(GALEphemeris::default());
+        let eph = EphemerisFrame::Galileo(GalEphemeris::default());
         let eph_len = eph.encoding_size();
         let record = Record::new_ephemeris_frame(eph);
 

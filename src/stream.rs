@@ -1,67 +1,75 @@
 //! BINEX Stream representation
 use crate::prelude::{ClosedSourceMeta, Message, Meta};
 
-/// [Message] [Provider]
+/// List of official [Message] [Provider]s.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Provider {
-    /// JPL for internal needs or prototyping.
+    /// [Provider::JPL] custom frame prototype.
     JPL,
-    /// IGS
+
+    /// [Provideer::IGS] custom frame prototype.
     IGS,
-    /// CU Boulder for internal needs or prototyping.
-    ColoradoUnivBoulder,
-    /// NRCan for internal needs or prototyping.
-    NRCan,
-    /// UCAR COSMIC <https://www.cosmic.ucar.edu>
+
+    /// Colorado University (CU Boulder) custom frame prototype.
+    ColoradoUniversity,
+
+    /// [Provider::NRCAN] (Canada) custom frame prototype.
+    NRCAN,
+
+    /// UCAR COSMIC (<https://www.cosmic.ucar.edu>) custom frame prototype.
     UCAR,
-    /// GPS Solutions Inc.
-    GPSSolutions,
-    /// Astech Precision Products
+
+    /// GPS Solutions Inc. custom frame prototype.
+    GpsSolutions,
+
+    /// Astech Precision custom frame prototype.
     Ashtech,
-    /// Topcon Positioning Systems
+
+    /// Topcon Positioning Systems custom frame prototype.
     Topcon,
 }
 
 impl Provider {
-    /// Identify potential closed source [Provider]
-    /// from parsed MID (u32)
+    /// Tries to match an official frame [Provider] from parsed MID
     pub(crate) fn match_any(mid: u32) -> Option<Self> {
-        if (0x80..=0x87).contains(&mid) {
+        if mid >= 0x80 && mid <= 0x87 {
             Some(Self::UCAR)
-        } else if (0x88..=0xa7).contains(&mid) {
+        } else if mid >= 0x88 && mid <= 0xa7 {
             Some(Self::Ashtech)
-        } else if (0xa8..=0xaf).contains(&mid) {
+        } else if mid >= 0xa8 && mid <= 0xaf {
             Some(Self::Topcon)
-        } else if (0xb0..=0xb3).contains(&mid) {
+        } else if mid >= 0xb0 && mid <= 0xb3 {
             Some(Self::GPSSolutions)
-        } else if (0xb4..=0xb7).contains(&mid) {
-            Some(Self::NRCan)
-        } else if (0xb8..=0xbf).contains(&mid) {
+        } else if mid >= 0xb4 && mid <= 0xb7 {
+            Some(Self::NRCAN)
+        } else if mid >= 0xb8 && mid <= 0xbf {
             Some(Self::JPL)
-        } else if (0xc0..=0xc3).contains(&mid) {
-            Some(Self::ColoradoUnivBoulder)
+        } else if mid >= 0xc0 && mid <= 0xc3 {
+            Some(Self::ColoradoUniversity)
         } else {
             None
         }
     }
 }
 
-/// Closed source frame that we can encode but not interprate.
+/// [ClosedSourceElement] describes a frame that we can encode but not fully interprete,
+/// because it is either not open source, or still being prototyped.
 /// This particular [StreamElement] can be either a part of a continuous serie or self sustainable.
 pub struct ClosedSourceElement<'a> {
     /// [ClosedSourceMeta]
     pub closed_meta: ClosedSourceMeta,
+
     /// Raw data starting at first byte of undisclosed payload.
     pub raw: &'a [u8],
 }
 
 impl<'a> ClosedSourceElement<'a> {
-    /// Interprate this [ClosedSourceElement] using custom undisclosed method.
-    pub fn interprate(&self, f: &dyn Fn(&[u8])) {
+    /// Interpret this [ClosedSourceElement] using custom undisclosed method.
+    pub fn interpret(&self, f: &dyn Fn(&[u8])) {
         f(&self.raw[..self.closed_meta.size])
     }
 
-    /// Returns reference to raw data "as is", since interpration is not possible
+    /// Returns reference to raw data "as is", since frame interpration has not been disclosed yet.
     pub fn raw(&self) -> &'a [u8] {
         &self.raw[..self.closed_meta.size]
     }
@@ -69,15 +77,18 @@ impl<'a> ClosedSourceElement<'a> {
 
 /// [StreamElement] represents one element of a continuous BINEX stream.
 pub enum StreamElement<'a> {
-    /// Open Source [Message] we can fully decode & interprate
+    /// Fully open source BINEX [Message] we can encode, decode and interpret.
     OpenSource(Message),
-    /// One non disclosed [ClosedSourceElement] that may be part of a continuous serie of elements.
+
+    /// Non disclosed [ClosedSourceElement] that may be part of a continuous serie of elements.
     /// Each chunk of the serie is internally limited to 4096 bytes.
-    /// While we can encode and decode this serie, we cannot interprate it.
+    /// Encoding and decoding is still feasible, but we cannot interpret the payload.
+    /// This is most-often used for frames being prototyped.
     ClosedSource(ClosedSourceElement<'a>),
 }
 
 impl<'a> From<Message> for StreamElement<'a> {
+    /// Creates an open source [Message] wrapper.
     fn from(msg: Message) -> Self {
         Self::OpenSource(msg)
     }
@@ -89,10 +100,10 @@ impl<'a> StreamElement<'a> {
         Self::OpenSource(msg)
     }
 
-    /// Creates a new self sustained closed source [StreamElement] provided by desired [Provider].
+    /// Creates a new self-sustained closed source [StreamElement] provided by desired [Provider].
     /// ## Inputs
     /// - meta: [Meta] data of this prototype
-    /// - provider: specific [Provider]
+    /// - provider: [Provider] of this prototype.
     /// - mid: message ID
     /// - mlen: total payload length (bytes)
     /// - raw: chunk we can encode, decode but not fully interprate   
@@ -144,7 +155,7 @@ impl<'a> StreamElement<'a> {
         Self::new_prototype(meta, Provider::IGS, mid, mlen, raw, size)
     }
 
-    /// Add one closed source [StreamElement]s provided by desired [Provider::ColoradoUnivBoulder].
+    /// Add one closed source [StreamElement]s provided by desired [Provider::ColoradoUniversity].
     /// While we can encode this into a BINEX stream, only this organization can fully interprate the resulting stream.
     /// ## Inputs
     /// - meta: [Meta] of this message prototype
@@ -154,17 +165,17 @@ impl<'a> StreamElement<'a> {
     /// - total: total size of the closed source Message (bytewise).
     /// It's either equal to [Meta::mlen] if this prototype if self sustainable,
     /// or larger, in case this prototype is only one element of a serie.
-    pub fn cuboulder_prototype(
+    pub fn colorado_university_prototype(
         meta: Meta,
         mid: u32,
         mlen: usize,
         raw: &'a [u8],
         size: usize,
     ) -> Self {
-        Self::new_prototype(meta, Provider::ColoradoUnivBoulder, mid, mlen, raw, size)
+        Self::new_prototype(meta, Provider::ColoradoUniversity, mid, mlen, raw, size)
     }
 
-    /// Add one closed source [StreamElement]s provided by desired [Provider::NRCan].
+    /// Add one closed source [StreamElement]s provided by desired [Provider::NRCAN].
     /// While we can encode this into a BINEX stream, only this organization can fully interprate the resulting stream.
     /// ## Inputs
     /// - meta: [Meta] of this message prototype
@@ -175,7 +186,7 @@ impl<'a> StreamElement<'a> {
     /// It's either equal to [Meta::mlen] if this prototype if self sustainable,
     /// or larger, in case this prototype is only one element of a serie.
     pub fn nrcan_prototype(meta: Meta, mid: u32, mlen: usize, raw: &'a [u8], size: usize) -> Self {
-        Self::new_prototype(meta, Provider::NRCan, mid, mlen, raw, size)
+        Self::new_prototype(meta, Provider::NRCAN, mid, mlen, raw, size)
     }
 
     /// Add one closed source [StreamElement]s provided by desired [Provider::UCAR].
@@ -190,5 +201,48 @@ impl<'a> StreamElement<'a> {
     /// or larger, in case this prototype is only one element of a serie.
     pub fn ucar_prototype(meta: Meta, mid: u32, mlen: usize, raw: &'a [u8], size: usize) -> Self {
         Self::new_prototype(meta, Provider::UCAR, mid, mlen, raw, size)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn frame_prototype_providers() {
+        for (value, expected) in [
+            (0x80, Provider::UCAR),
+            (0x81, Provider::UCAR),
+            (0x82, Provider::UCAR),
+            (0x87, Provider::UCAR),
+            (0x88, Provider::AshTech),
+            (0x89, Provider::AshTech),
+            (0xa7, Provider::AshTech),
+            (0xa8, Provider::TopCon),
+            (0xa9, Provider::TopCon),
+            (0xaf, Provider::TopCon),
+            (0xb0, Provider::GpsSolutions),
+            (0xb1, Provider::GpsSolutions),
+            (0xb2, Provider::GpsSolutions),
+            (0xb3, Provider::GpsSolutions),
+            (0xb4, Provider::NRCAN),
+            (0xb5, Provider::NRCAN),
+            (0xb6, Provider::NRCAN),
+            (0xb7, Provider::NRCAN),
+            (0xb8, Provider::JPL),
+            (0xb9, Provider::JPL),
+            (0xba, Provider::JPL),
+            (0xbe, Provider::JPL),
+            (0xbf, Provider::JPL),
+            (0xc0, Provider::ColoradoUniversity),
+            (0xc1, Provider::ColoradoUniversity),
+            (0xc2, Provider::ColoradoUniversity),
+            (0xc3, Provider::ColoradoUniversity),
+        ] {
+            assert_eq!(Provider::match_any(value), Some(expected));
+        }
+
+        assert_eq!(Provider::match_any(0x79).is_none());
+        assert_eq!(Provider::match_any(0x7f).is_none());
+        assert_eq!(Provider::match_any(0xc4.is_none()));
+        assert_eq!(Provider::match_any(0xc5.is_none()));
     }
 }
