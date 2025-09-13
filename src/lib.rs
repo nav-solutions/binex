@@ -13,6 +13,10 @@
 
 use thiserror::Error;
 
+#[cfg(feature = "serde")]
+#[macro_use]
+extern crate serde;
+
 mod decoder;
 mod message;
 mod stream;

@@ -2,7 +2,11 @@ use std::f32::consts::PI as Pi32;
 
 use crate::{utils::Utils, Error};
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 #[derive(Debug, Copy, Clone, PartialEq, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct GpsEphemeris {
     /// Satellite ID #
     pub satellite_id: u8,

@@ -1,15 +1,19 @@
 //! Raw GPS Ephemeris
 use crate::Error;
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct GPSRaw {
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct GpsRaw {
     pub svid1: u8,
     pub uint1: u8,
     pub sint4: i32,
-    bytes: [u8; 72],
+    pub bytes: [u8; 72],
 }
 
-impl Default for GPSRaw {
+impl Default for GpsRaw {
     fn default() -> Self {
         Self {
             svid1: 0,
@@ -20,17 +24,14 @@ impl Default for GPSRaw {
     }
 }
 
-impl GPSRaw {
-    /// Builds new Raw GPS Ephemeris message
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub(crate) const fn encoding_size() -> usize {
+impl GpsRaw {
+    /// Returns total number of bytes required to encode [Self].
+    pub const fn encoding_size() -> usize {
         78
     }
 
-    pub(crate) fn decode(big_endian: bool, buf: &[u8]) -> Result<Self, Error> {
+    /// Decodes [GpsRaw] frame from read-only buffer.
+    pub fn decode(big_endian: bool, buf: &[u8]) -> Result<Self, Error> {
         if buf.len() < Self::encoding_size() {
             return Err(Error::NotEnoughBytes);
         }
@@ -55,25 +56,27 @@ impl GPSRaw {
         })
     }
 
-    pub(crate) fn encode(&self, big_endian: bool, buf: &mut [u8]) -> Result<usize, Error> {
+    /// Encodes this [GpsRaw] frame into mutable buffer.
+    /// Returns total number of encoded bytes.
+    pub fn encode(&self, big_endian: bool, buf: &mut [u8]) -> Result<usize, Error> {
         let size = Self::encoding_size();
         if buf.len() < size {
             Err(Error::NotEnoughBytes)
-        } else {
-            buf[0] = self.svid1;
-            buf[1] = self.uint1;
-
-            let bytes = if big_endian {
-                self.sint4.to_be_bytes()
-            } else {
-                self.sint4.to_le_bytes()
-            };
-
-            buf[2..6].copy_from_slice(&bytes);
-            buf[6..78].copy_from_slice(&self.bytes);
-
-            Ok(size)
         }
+
+        buf[0] = self.svid1;
+        buf[1] = self.uint1;
+
+        let bytes = if big_endian {
+            self.sint4.to_be_bytes()
+        } else {
+            self.sint4.to_le_bytes()
+        };
+
+        buf[2..6].copy_from_slice(&bytes);
+        buf[6..78].copy_from_slice(&self.bytes);
+
+        Ok(size)
     }
 }
 
@@ -85,7 +88,7 @@ mod test {
     fn gps_raw() {
         for big_endian in [true, false] {
             let buf = [0; 64];
-            let decode = GPSRaw::decode(big_endian, &buf);
+            let decode = GpsRaw::decode(big_endian, &buf);
             assert!(decode.is_err());
 
             let mut buf = [0; 78];
@@ -95,7 +98,7 @@ mod test {
             buf[7] = 11;
             buf[6 + 71] = 123;
 
-            let decoded = GPSRaw::decode(big_endian, &buf).unwrap();
+            let decoded = GpsRaw::decode(big_endian, &buf).unwrap();
 
             assert_eq!(decoded.svid1, 10);
             assert_eq!(decoded.uint1, 1);

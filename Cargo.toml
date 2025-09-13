@@ -22,9 +22,14 @@ all-features = true
 rustdoc-args = ["--cfg", "docrs", "--generate-link-to-definition"]
 
 [features]
-
 # Gzip compressed BINEX stream available by default
 default = ["flate2"]
+
+# Message serdes (json)
+serde = ["dep:serde", "hifitime/serde"]
+
+# GNSS protos bridges
+gnss-protos = ["dep:gnss-protos"]
 
 [dependencies]
 log = "0.4"
@@ -32,7 +37,9 @@ md-5 = "0.10"
 thiserror = "2"
 lazy_static = "1.4"
 flate2 = { version = "1.0.34", optional = true }
-hifitime = { version = "4.1.0", features = ["serde", "std"] }
+hifitime = { version = "4.1.0", features = ["std"] }
+gnss-protos = { version = "0.0.2", features = ["gps"], optional = true }
+serde = { version = "1.0", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
 criterion = "0.7.0"
