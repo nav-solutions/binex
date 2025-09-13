@@ -26,6 +26,13 @@ or undisclosed elements. (private prototypes)
 
 * or use Message::decode to work on your own buffer directly.
 
+Library features
+================
+
+- `serde` for structure serdes operation
+- `gnss-protos` for easy GNSS proto to binex encoding
+- `flate2` for Gzip encoded BINEX stream (more efficient transmissions)
+
 Current limitations
 ===================
 
