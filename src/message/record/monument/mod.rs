@@ -26,6 +26,7 @@ pub use src::MonumentGeoMetadata;
 pub struct GeoStringFrame {
     /// [FieldID] frame identifier
     pub(crate) fid: FieldID,
+
     /// Readable string
     pub string: String,
 }

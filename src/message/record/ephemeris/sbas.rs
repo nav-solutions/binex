@@ -1,33 +1,61 @@
 //! SBAS ephemeris
 use crate::{utils::Utils, Error};
 
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct SBASEphemeris {
+#[derive(Debug, Copy, Clone, PartialEq, Default)]
+pub struct SbasEphemeris {
+    /// Satellite PRN #
     pub sbas_prn: u8,
+
+    /// Time of issue of ephemeris in seconds of week
     pub toe: u16,
+
+    /// Week counter at instant of message transmission
     pub tow: i32,
-    /// Clock offset /bias [s]
+
+    /// Satellite clock bias, in seconds.
     pub clock_offset: f64,
-    /// Clock drift [s/s]
+
+    /// Satellite clock drift in seconds per second.
     pub clock_drift: f64,
+
+    /// Satellite position x-component in km (ECEF)
     pub x_km: f64,
+
+    /// Satellite velocity x-component in km per second (ECEF)
     pub vel_x_km: f64,
+
+    /// Satellite acceleration x-component in km per squared second (ECEF)
     pub acc_x_km: f64,
+
+    /// Satellite position y-component in km (ECEF)
     pub y_km: f64,
+
+    /// Satellite velocity y-component in km per second (ECEF)
     pub vel_y_km: f64,
+
+    /// Satellite acceleration y-component in km per squared second (ECEF)
     pub acc_y_km: f64,
+
+    /// Satellite position z-component in km (ECEF)
     pub z_km: f64,
+
+    /// Satellite velocity z-component in km per second (ECEF)
     pub vel_z_km: f64,
+
+    /// Satellite acceleration z-component in km per squared second (ECEF)
     pub acc_z_km: f64,
+
     pub uint1: u8,
     pub ura: u8,
     pub iodn: u8,
 }
 
-impl SBASEphemeris {
+impl SbasEphemeris {
+    /// Returns total number of bytes required to encode this [SbasEphemeris]
     pub(crate) const fn encoding_size() -> usize {
         98
     }
+
     pub(crate) fn encode(&self, big_endian: bool, buf: &mut [u8]) -> Result<usize, Error> {
         let size = Self::encoding_size();
         if buf.len() < size {
@@ -146,6 +174,7 @@ impl SBASEphemeris {
 
         Ok(Self::encoding_size())
     }
+
     pub(crate) fn decode(big_endian: bool, buf: &[u8]) -> Result<Self, Error> {
         if buf.len() < Self::encoding_size() {
             return Err(Error::NotEnoughBytes);
@@ -205,14 +234,14 @@ mod test {
     #[test]
     fn eph_x00_x03_error() {
         let buf = [0; 64];
-        assert!(SBASEphemeris::decode(true, &buf).is_err());
+        assert!(SbasEphemeris::decode(true, &buf).is_err());
     }
 
     #[test]
     fn sbas_ephemeris() {
         for big_endian in [true, false] {
             let buf = [0; 100];
-            let eph = SBASEphemeris::decode(big_endian, &buf).unwrap();
+            let eph = SbasEphemeris::decode(big_endian, &buf).unwrap();
 
             // test mirror
             let mut target = [0; 64];
@@ -223,7 +252,7 @@ mod test {
             assert_eq!(size, 98);
             assert_eq!(buf, target);
 
-            let eph = SBASEphemeris {
+            let eph = SbasEphemeris {
                 sbas_prn: 10,
                 toe: 11,
                 tow: 12,
@@ -246,7 +275,7 @@ mod test {
             let mut target = [0; 100];
             eph.encode(big_endian, &mut target).unwrap();
 
-            let decoded = SBASEphemeris::decode(big_endian, &target).unwrap();
+            let decoded = SbasEphemeris::decode(big_endian, &target).unwrap();
             assert_eq!(eph, decoded);
         }
     }

@@ -1,6 +1,6 @@
 [package]
 name = "binex"
-version = "0.5.1"
+version = "0.6.0"
 license = "MPL-2.0"
 authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
 description = "BINEX encoder and decoder for real-time GNSS"
@@ -22,6 +22,8 @@ all-features = true
 rustdoc-args = ["--cfg", "docrs", "--generate-link-to-definition"]
 
 [features]
+
+# Gzip compressed BINEX stream available by default
 default = ["flate2"]
 
 [dependencies]

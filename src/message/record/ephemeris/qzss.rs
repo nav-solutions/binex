@@ -2,107 +2,70 @@ use std::f32::consts::PI as Pi32;
 
 use crate::{utils::Utils, Error};
 
-#[derive(Debug, Copy, Clone, PartialEq, Default)]
-pub struct GpsEphemeris {
-    /// Satellite ID #
-    pub satellite_id: u8,
-
-    /// Time of Issue of Ephemeris (in seconds of week)
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct GPSEphemeris {
+    pub sv_prn: u8,
     pub toe: u16,
-
-    /// Week counter
     pub tow: i32,
-
-    /// Time of clock (in seconds of week)
     pub toc: i32,
-
-    /// Total group delay (in seconds)
     pub tgd: f32,
-
-    /// Message IODC
     pub iodc: i32,
-
-    /// Satellite clock offset (in seconds)
+    /// Clock offset /bias [s]
     pub clock_offset: f32,
-
-    /// Satellite clock drift (in seconds per second)
+    /// Clock drift [s/s]
     pub clock_drift: f32,
-
-    /// Satellite clock drift rate (in seconds per s²)
+    /// Clock drift rate [s/s²]
     pub clock_drift_rate: f32,
-
-    /// Message IODE
     pub iode: i32,
-
-    /// Delta n (in radians per second)
+    /// Delta n in [rad/s].
     pub delta_n_rad_s: f32,
-
-    /// Mean anomaly at reference time (in radians)
+    /// Mean anomaly at reference time [rad]
     pub m0_rad: f64,
-
-    /// Orbit eccentricity
+    /// Eccentricity
     pub e: f64,
-
-    /// Square root of semi-major axis
-    pub sqrt_a_sqrt_m: f64,
-
-    /// Ci (sine term, in radians)
-    pub cis_rad: f32,
-
-    /// Ci (cosine term, in radians)
-    pub cic_rad: f32,
-
-    /// Cr (cosine term, in meters)
-    pub crc_m: f32,
-
-    /// Cr (sine term, in meters)
-    pub crs_rad: f32,
-
-    /// Cu (sine term, in radians)
-    pub cus_rad: f32,
-
-    /// Cu (cosine term, in radians)
-    pub cuc_rad: f32,
-
-    /// Longitude of ascending node (in radians)
+    /// Square root of semi-major axis [m^1/2]
+    pub sqrt_a: f64,
+    /// cic perturbation
+    pub cic: f32,
+    /// crc perturbation
+    pub crc: f32,
+    /// cis perturbation
+    pub cis: f32,
+    /// crs perturbation
+    pub crs: f32,
+    /// cuc perturbation
+    pub cuc: f32,
+    /// cus perturbation
+    pub cus: f32,
+    /// longitude of ascending node [rad]
     pub omega_0_rad: f64,
-
-    /// Argument of perigee (in radians)
+    /// argument of perigee [rad]
     pub omega_rad: f64,
-
-    /// Inclination angle at reference time (in radians)
+    /// inclination at reference time [rad]
     pub i0_rad: f64,
-
-    /// Rate of right ascention (in radians per second)
+    /// rate of right ascention [rad/s]
     pub omega_dot_rad_s: f32,
-
-    /// Rate of inclination (in radians per second)
+    /// rate of inclination [rad/s]
     pub i_dot_rad_s: f32,
-
-    /// User Range Accuracy (URA, in meters)
+    /// nominal User Range Accuracy (URA) in [m]
     pub ura_m: f32,
-
-    /// Satellite health flag
-    pub health: u16,
-
+    // SV health code
+    pub sv_health: u16,
+    // uint2
     pub uint2: u16,
 }
 
-impl GpsEphemeris {
-    /// Returns total number of bytes required to encode this [GpsEphemeris]
-    pub const fn encoding_size() -> usize {
+impl GPSEphemeris {
+    pub(crate) const fn encoding_size() -> usize {
         128
     }
-
-    /// Encodes this [GpsEphemeris] into mutable buffer.
-    /// Returns total number of encoded bytes.
     pub(crate) fn encode(&self, big_endian: bool, buf: &mut [u8]) -> Result<usize, Error> {
         let size = Self::encoding_size();
         if buf.len() < size {
             return Err(Error::NotEnoughBytes);
         }
 
-        buf[0] = self.satellite_id;
+        buf[0] = self.sv_prn;
 
         let toe = if big_endian {
             self.toe.to_be_bytes()
@@ -201,25 +164,25 @@ impl GpsEphemeris {
         buf[47..55].copy_from_slice(&e);
 
         let sqrt_a = if big_endian {
-            self.sqrt_a_sqrt_m.to_be_bytes()
+            self.sqrt_a.to_be_bytes()
         } else {
-            self.sqrt_a_sqrt_m.to_le_bytes()
+            self.sqrt_a.to_le_bytes()
         };
 
         buf[55..63].copy_from_slice(&sqrt_a);
 
         let cic = if big_endian {
-            self.cic_rad.to_be_bytes()
+            self.cic.to_be_bytes()
         } else {
-            self.cic_rad.to_le_bytes()
+            self.cic.to_le_bytes()
         };
 
         buf[63..67].copy_from_slice(&cic);
 
         let crc = if big_endian {
-            self.crc_m.to_be_bytes()
+            self.crc.to_be_bytes()
         } else {
-            self.crc_m.to_le_bytes()
+            self.crc.to_le_bytes()
         };
 
         buf[67..71].copy_from_slice(&crc);
@@ -233,25 +196,25 @@ impl GpsEphemeris {
         buf[71..75].copy_from_slice(&cis);
 
         let crs = if big_endian {
-            self.crs_m.to_be_bytes()
+            self.crs.to_be_bytes()
         } else {
-            self.crs_m.to_le_bytes()
+            self.crs.to_le_bytes()
         };
 
         buf[75..79].copy_from_slice(&crs);
 
         let cuc = if big_endian {
-            self.cuc_rad.to_be_bytes()
+            self.cuc.to_be_bytes()
         } else {
-            self.cuc_rad.to_le_bytes()
+            self.cuc.to_le_bytes()
         };
 
         buf[79..83].copy_from_slice(&cuc);
 
         let cus = if big_endian {
-            self.cus_rad.to_be_bytes()
+            self.cus.to_be_bytes()
         } else {
-            self.cus_rad.to_le_bytes()
+            self.cus.to_le_bytes()
         };
 
         buf[83..87].copy_from_slice(&cus);
@@ -304,10 +267,10 @@ impl GpsEphemeris {
 
         buf[119..123].copy_from_slice(&ura_m);
 
-        let health = if big_endian {
-            self.health.to_be_bytes()
+        let sv_health = if big_endian {
+            self.sv_health.to_be_bytes()
         } else {
-            self.health.to_le_bytes()
+            self.sv_health.to_le_bytes()
         };
 
         buf[123..125].copy_from_slice(&sv_health);
@@ -321,14 +284,12 @@ impl GpsEphemeris {
         buf[125..127].copy_from_slice(&uint2);
         Ok(size)
     }
-
-    /// Decodes a [GpsEphemeris] frame from read-only buffer.
-    pub fn decode(big_endian: bool, buf: &[u8]) -> Result<Self, Error> {
+    pub(crate) fn decode(big_endian: bool, buf: &[u8]) -> Result<Self, Error> {
         if buf.len() < Self::encoding_size() {
             return Err(Error::NotEnoughBytes);
         }
         // 1. PRN
-        let satellite_id = buf[0];
+        let sv_prn = buf[0];
         // 2. TOE
         let toe = Utils::decode_u16(big_endian, &buf[1..3])?;
         // 3. TOW
@@ -354,19 +315,19 @@ impl GpsEphemeris {
         // 12: e
         let e = Utils::decode_f64(big_endian, &buf[47..55])?;
         // 13: sqrt_a
-        let sqrt_a_sqrt_m = Utils::decode_f64(big_endian, &buf[55..63])?;
+        let sqrt_a = Utils::decode_f64(big_endian, &buf[55..63])?;
         // 14: cic
-        let cic_rad = Utils::decode_f32(big_endian, &buf[63..67])?;
+        let cic = Utils::decode_f32(big_endian, &buf[63..67])?;
         // 15: crc
-        let crc_m = Utils::decode_f32(big_endian, &buf[67..71])?;
+        let crc = Utils::decode_f32(big_endian, &buf[67..71])?;
         // 16: cis
-        let cis_rad = Utils::decode_f32(big_endian, &buf[71..75])?;
+        let cis = Utils::decode_f32(big_endian, &buf[71..75])?;
         // 17: crs
-        let crs_m = Utils::decode_f32(big_endian, &buf[75..79])?;
+        let crs = Utils::decode_f32(big_endian, &buf[75..79])?;
         // 18: cuc
-        let cuc_rad = Utils::decode_f32(big_endian, &buf[79..83])?;
+        let cuc = Utils::decode_f32(big_endian, &buf[79..83])?;
         // 19: cus
-        let cus_rad = Utils::decode_f32(big_endian, &buf[83..87])?;
+        let cus = Utils::decode_f32(big_endian, &buf[83..87])?;
         // 20: omega0
         let omega_0_rad = Utils::decode_f64(big_endian, &buf[87..95])?;
         // 21: omega
@@ -379,13 +340,13 @@ impl GpsEphemeris {
         let i_dot_rad_s = Utils::decode_f32(big_endian, &buf[115..119])? * Pi32;
         // 25: ura
         let ura_m = Utils::decode_f32(big_endian, &buf[119..123])? * 0.1;
-        // 26: health
-        let health = Utils::decode_u16(big_endian, &buf[123..125])?;
+        // 26: sv_health
+        let sv_health = Utils::decode_u16(big_endian, &buf[123..125])?;
         // 27: uint2
         let uint2 = Utils::decode_u16(big_endian, &buf[125..127])?;
 
         Ok(Self {
-            satellite_id,
+            sv_prn,
             toe,
             tow,
             toc,
@@ -398,20 +359,20 @@ impl GpsEphemeris {
             delta_n_rad_s,
             m0_rad,
             e,
-            sqrt_a_sqrt_m,
-            cic_rad,
-            crc_m,
-            cis_rad,
-            crs_m,
-            cuc_rad,
-            cus_rad,
+            sqrt_a,
+            cic,
+            crc,
+            cis,
+            crs,
+            cuc,
+            cus,
             omega_rad,
             omega_0_rad,
             i0_rad,
             i_dot_rad_s,
             omega_dot_rad_s,
             ura_m,
-            health,
+            sv_health,
             uint2,
         })
     }
@@ -424,7 +385,7 @@ mod test {
     #[test]
     fn eph_x00_x01_error() {
         let buf = [0; 100];
-        assert!(GpsEphemeris::decode(true, &buf).is_err());
+        assert!(GPSEphemeris::decode(true, &buf).is_err());
     }
 
     #[test]
@@ -432,7 +393,7 @@ mod test {
         for big_endian in [true, false] {
             let buf = [0; 128];
 
-            let eph = GpsEphemeris::decode(big_endian, &buf).unwrap();
+            let eph = GPSEphemeris::decode(big_endian, &buf).unwrap();
 
             // test mirror
             let mut target = [0; 100];
@@ -443,8 +404,8 @@ mod test {
             assert_eq!(size, 128);
             assert_eq!(buf, target);
 
-            let eph = GpsEphemeris {
-                satellite_id: 10,
+            let eph = GPSEphemeris {
+                sv_prn: 10,
                 toe: 1000,
                 tow: 120,
                 toc: 130,
@@ -453,17 +414,17 @@ mod test {
                 clock_offset: 123.0,
                 clock_drift_rate: 130.0,
                 clock_drift: 150.0,
-                sqrt_a_sqrt_m: 56.0,
+                sqrt_a: 56.0,
                 iode: -2000,
                 delta_n_rad_s: 12.0,
                 m0_rad: 0.1,
                 e: 0.2,
-                cic_rad: 0.3,
-                crc_m: 0.4,
-                cis_rad: 0.5,
-                crs_m: 0.6,
-                cuc_rad: 0.7,
-                cus_rad: 0.8,
+                cic: 0.3,
+                crc: 0.4,
+                cis: 0.5,
+                crs: 0.6,
+                cuc: 0.7,
+                cus: 0.8,
                 omega_0_rad: 0.9,
                 omega_rad: 59.0,
                 i0_rad: 61.0,
@@ -477,7 +438,7 @@ mod test {
             let mut target = [0; 153];
             eph.encode(big_endian, &mut target).unwrap();
 
-            let decoded = GpsEphemeris::decode(big_endian, &target).unwrap();
+            let decoded = GPSEphemeris::decode(big_endian, &target).unwrap();
             assert_eq!(eph, decoded);
         }
     }

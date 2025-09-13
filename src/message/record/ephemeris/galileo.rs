@@ -1,49 +1,92 @@
 //! Galileo ephemeris
 use crate::{utils::Utils, Error};
 
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct GALEphemeris {
-    pub sv_prn: u8,
+#[derive(Debug, Copy, Clone, PartialEq, Default)]
+pub struct GalEphemeris {
+    /// Satellite ID #
+    pub satellite_id: u8,
+
+    /// Time of Issue of ephemeris as elapsed weeks in timescale
     pub toe_week: u16,
+
+    /// Elapsed seconds within week at instant of transmission
     pub tow: i32,
+
+    /// Time of Issue of ehphemeris as elapsed seconds within week
     pub toe_s: i32,
+
+    /// Satellite clock offset (in seconds)
+    pub clock_offset: f32,
+
+    /// Satellite clock drift (in seconds per second)
+    pub clock_drift: f32,
+
+    /// Satellite clock drift rate (in seconds per squared second)
+    pub clock_drift_rate: f32,
+
     pub bgd_e5a_e1_s: f32,
     pub bgd_e5b_e1_s: f32,
     pub iodnav: i32,
-    pub clock_drift_rate: f32,
-    pub clock_drift: f32,
-    pub clock_offset: f32,
     pub delta_n_semi_circles_s: f32,
     pub m0_rad: f64,
+
+    /// Orbit eccentricity (no unit)
     pub e: f64,
-    pub sqrt_a: f64,
-    pub cic: f32,
-    pub crc: f32,
-    pub cis: f32,
-    pub crs: f32,
-    pub cuc: f32,
-    pub cus: f32,
+
+    /// Square root of semi-major axis
+    pub sqrt_a_sqrt_m: f64,
+
+    /// Cr sine component (in meters)
+    pub crs_m: f32,
+
+    /// Cr cosine component (in meters)
+    pub crc_m: f32,
+
+    /// Ci sine component (in radians)
+    pub cis_rad: f32,
+
+    /// Ci cosine component (in radians)
+    pub cic_rad: f32,
+
+    /// Cu sine component (in radians)
+    pub cus_rad: f32,
+
+    /// Cu cosine component (in radians)
+    pub cuc_rad: f32,
+
+    /// Omega0 (in radians)
     pub omega_0_rad: f64,
+
+    /// Omega (in radians)
     pub omega_rad: f64,
-    pub i0_rad: f64,
+
+    /// Omega first derivative
     pub omega_dot_semi_circles: f32,
+
+    /// i0 (in radians)
+    pub i0_rad: f64,
+
     pub idot_semi_circles_s: f32,
     pub sisa: f32,
     pub sv_health: u16,
     pub source: u16,
 }
 
-impl GALEphemeris {
-    pub(crate) const fn encoding_size() -> usize {
+impl GalEphemeris {
+    /// Returns total number of bytes needed to encode this [GalEphemeris].
+    pub const fn encoding_size() -> usize {
         128
     }
-    pub(crate) fn encode(&self, big_endian: bool, buf: &mut [u8]) -> Result<usize, Error> {
+
+    /// Encodes this [GalEphemeris] into provided buffer.
+    /// Returns total number of encoded bytes.
+    pub fn encode(&self, big_endian: bool, buf: &mut [u8]) -> Result<usize, Error> {
         let size = Self::encoding_size();
         if buf.len() < size {
             return Err(Error::NotEnoughBytes);
         }
 
-        buf[0] = self.sv_prn;
+        buf[0] = self.satellite_id;
 
         let toe_week = if big_endian {
             self.toe_week.to_be_bytes()
@@ -264,12 +307,13 @@ impl GALEphemeris {
         Ok(Self::encoding_size())
     }
 
-    pub(crate) fn decode(big_endian: bool, buf: &[u8]) -> Result<Self, Error> {
+    /// [GalEphemeris] decoding attempt from read-only buffer.
+    pub fn decode(big_endian: bool, buf: &[u8]) -> Result<Self, Error> {
         if buf.len() < Self::encoding_size() {
             return Err(Error::NotEnoughBytes);
         }
         // 1. PRN
-        let sv_prn = buf[0];
+        let satellite_id = buf[0];
         // 2. TOE
         let toe_week = Utils::decode_u16(big_endian, &buf[1..3])?;
         // 3. TOW
@@ -323,7 +367,7 @@ impl GALEphemeris {
         let source = Utils::decode_u16(big_endian, &buf[125..127])?;
 
         Ok(Self {
-            sv_prn,
+            satellite_id,
             toe_week,
             tow,
             toe_s,
@@ -362,14 +406,14 @@ mod test {
     #[test]
     fn eph_x00_x04_error() {
         let buf = [0; 100];
-        assert!(GALEphemeris::decode(true, &buf).is_err());
+        assert!(GalEphemeris::decode(true, &buf).is_err());
     }
 
     #[test]
     fn gal_ephemeris() {
         for big_endian in [true, false] {
             let buf = [0; 128];
-            let eph = GALEphemeris::decode(big_endian, &buf).unwrap();
+            let eph = GalEphemeris::decode(big_endian, &buf).unwrap();
 
             // test mirror
             let mut target = [0; 100];
@@ -380,8 +424,8 @@ mod test {
             assert_eq!(size, 128);
             assert_eq!(buf, target);
 
-            let eph = GALEphemeris {
-                sv_prn: 10,
+            let eph = GalEphemeris {
+                satellite_id: 10,
                 clock_offset: 123.0,
                 clock_drift_rate: 130.0,
                 clock_drift: 150.0,
@@ -414,7 +458,7 @@ mod test {
             let mut target = [0; 128];
             eph.encode(big_endian, &mut target).unwrap();
 
-            let decoded = GALEphemeris::decode(big_endian, &target).unwrap();
+            let decoded = GalEphemeris::decode(big_endian, &target).unwrap();
             assert_eq!(eph, decoded);
         }
     }

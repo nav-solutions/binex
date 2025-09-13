@@ -9,14 +9,19 @@ pub enum FieldID {
     ///   * sint4 ToW in seconds
     ///   * 72 bytes: GPS ephemeris subframe
     GPSRaw = 0,
+
     /// Decoded GPS Ephemeris
     GPS = 1,
+
     /// Decoded GLO Ephemeris
     GLO = 2,
+
     /// Decoded SBAS Ephemeris
     SBAS = 3,
+
     /// Decoded GAL Ephemeris
     GAL = 4,
+
     /// Unknown / Invalid
     Unknown = 0xffffffff,
 }

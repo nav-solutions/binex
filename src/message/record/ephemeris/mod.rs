@@ -5,32 +5,42 @@ mod fid;
 use fid::FieldID;
 
 mod gps;
-pub use gps::{GPSEphemeris, GPSRaw};
+pub use gps::{GpsEphemeris, GpsRaw};
+
+mod qzss;
+pub use qzss::QzssEphemeris;
 
 mod glonass;
-pub use glonass::GLOEphemeris;
+pub use glonass::GloEphemeris;
 
 mod sbas;
-pub use sbas::SBASEphemeris;
+pub use sbas::SbasEphemeris;
 
 mod galileo;
-pub use galileo::GALEphemeris;
+pub use galileo::GalEphemeris;
 
 /// [EphemerisFrame] may describe raw, decoded GNSS
 /// Ephemeris or Ionosphere model parameters.
 #[derive(Debug, Clone, PartialEq)]
 pub enum EphemerisFrame {
-    /// Raw (encoded) GPS frame as is.
-    /// It did not go through a decoding & interpretation process.
-    GPSRaw(GPSRaw),
-    /// Decoded GPS Ephemeris
-    GPS(GPSEphemeris),
-    /// Decoded Glonass Ephemeris
-    GLO(GLOEphemeris),
-    /// Decoded SBAS Ephemeris
-    SBAS(SBASEphemeris),
-    /// Decoded Galileo Ephemeris
-    GAL(GALEphemeris),
+    /// [GpsRaw] (encoded) GPS frame as is.
+    /// The frame did not go through a decoding/interpretation process.
+    GpsRaw(GpsRaw),
+
+    /// Decoded [GpsEphemeris]
+    GPS(GpsEphemeris),
+
+    /// Decoded [QzssEphemeris]
+    QZSS(QzssEphemeris),
+
+    /// Decoded [GloEphemeris]
+    Glonass(GloEphemeris),
+
+    /// Decoded [SbasEphemeris]
+    SBAS(SbasEphemeris),
+
+    /// Decoded [GalEphemeris]
+    Galileo(GalEphemeris),
 }
 
 impl EphemerisFrame {
@@ -40,11 +50,11 @@ impl EphemerisFrame {
         let fid_1_4 = Message::bnxi_encoding_size(self.to_field_id() as u32);
 
         let size = match self {
-            Self::GPSRaw(_) => GPSRaw::encoding_size(),
-            Self::GPS(_) => GPSEphemeris::encoding_size(),
-            Self::GLO(_) => GLOEphemeris::encoding_size(),
-            Self::SBAS(_) => SBASEphemeris::encoding_size(),
-            Self::GAL(_) => GALEphemeris::encoding_size(),
+            Self::GpsRaw(_) => GpsRaw::encoding_size(),
+            Self::GPS(_) => GpsEphemeris::encoding_size(),
+            Self::Glonass(_) => GloEphemeris::encoding_size(),
+            Self::SBAS(_) => SbasEphemeris::encoding_size(),
+            Self::Galileo(_) => GalEphemeris::encoding_size(),
         };
 
         size + fid_1_4
@@ -54,10 +64,10 @@ impl EphemerisFrame {
     pub(crate) fn to_field_id(&self) -> FieldID {
         match self {
             Self::GPS(_) => FieldID::GPS,
-            Self::GLO(_) => FieldID::GLO,
+            Self::Glonass(_) => FieldID::GLO,
             Self::SBAS(_) => FieldID::SBAS,
-            Self::GAL(_) => FieldID::GAL,
-            Self::GPSRaw(_) => FieldID::GPSRaw,
+            Self::Galileo(_) => FieldID::GAL,
+            Self::GpsRaw(_) => FieldID::GPSRaw,
         }
     }
 
@@ -109,39 +119,44 @@ impl EphemerisFrame {
         let offset = Message::encode_bnxi(fid, big_endian, buf)?;
 
         let size = match self {
-            Self::GPSRaw(r) => r.encode(big_endian, &mut buf[offset..])?,
+            Self::GpsRaw(r) => r.encode(big_endian, &mut buf[offset..])?,
             Self::GPS(r) => r.encode(big_endian, &mut buf[offset..])?,
-            Self::GLO(r) => r.encode(big_endian, &mut buf[offset..])?,
-            Self::GAL(r) => r.encode(big_endian, &mut buf[offset..])?,
+            Self::Glonass(r) => r.encode(big_endian, &mut buf[offset..])?,
+            Self::Galileo(r) => r.encode(big_endian, &mut buf[offset..])?,
             Self::SBAS(r) => r.encode(big_endian, &mut buf[offset..])?,
         };
 
         Ok(size + offset)
     }
 
-    /// Creates new [GPSRaw] frame
+    /// Creates new [GpsRaw] frame wrapper.
     pub fn new_gps_raw(raw: GPSRaw) -> Self {
-        Self::GPSRaw(raw)
+        Self::GpsRaw(raw)
     }
 
-    /// Creates new [GPSEphemeris] frame
-    pub fn new_gps(gps: GPSEphemeris) -> Self {
+    /// Creates new [GpsEphemeris] frame wrapper.
+    pub fn new_gps(gps: GpsEphemeris) -> Self {
         Self::GPS(gps)
     }
 
-    /// Creates new [GLOEphemeris] frame
-    pub fn new_glonass(glo: GLOEphemeris) -> Self {
-        Self::GLO(glo)
+    /// Creates new [GloEphemeris] frame wrapper.
+    pub fn new_glonass(ephemeris: GloEphemeris) -> Self {
+        Self::Glonass(ephemeris)
     }
 
-    /// Creates new [SBASEphemeris] frame
-    pub fn new_sbas(sbas: SBASEphemeris) -> Self {
-        Self::SBAS(sbas)
+    /// Creates new [SbasEphemeris] frame
+    pub fn new_sbas(ephemeris: SbasEphemeris) -> Self {
+        Self::SBAS(ephemeris)
     }
 
-    /// Creates new [GALEphemeris] frame
-    pub fn new_galileo(gal: GALEphemeris) -> Self {
-        Self::GAL(gal)
+    /// Creates new [GALEphemeris] frame wrapper.
+    pub fn new_galileo(ephemeris: GalEphemeris) -> Self {
+        Self::Galileo(ephemeris)
+    }
+
+    /// Creates new [QzssEphemeris] frame wrapper.
+    pub fn new_qzss(ephemeris: QzssEphemeris) -> Self {
+        Self::QZSS(ephemeris)
     }
 }
 

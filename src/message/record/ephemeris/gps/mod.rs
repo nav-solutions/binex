@@ -1,5 +1,5 @@
 mod eph;
 mod raw;
 
-pub use eph::GPSEphemeris;
-pub use raw::GPSRaw;
+pub use eph::GpsEphemeris;
+pub use raw::GpsRaw;

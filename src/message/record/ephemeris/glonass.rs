@@ -1,36 +1,78 @@
 //! Glonass ephemeris
 use crate::{utils::Utils, Error};
 
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct GLOEphemeris {
+#[derive(Debug, Copy, Clone, PartialEq, Default)]
+pub struct GloEphemeris {
     pub slot: u8,
+
+    /// Day counter
     pub day: u16,
+
+    /// Elapsed seconds within day
     pub tod_s: u32,
+
+    /// Satellite clock offset (in seconds)
     pub clock_offset_s: f64,
+
+    /// Satellite relative frequency bias (no unit)
     pub clock_rel_freq_bias: f64,
+
+    /// Time of Issue of ephemeris in seconds of week
     pub t_k_sec: u32,
+
+    /// Satellite position x-component in km (ECEF)
     pub x_km: f64,
+
+    /// Satellite velocity x-component in km per second (ECEF)
     pub vel_x_km: f64,
+
+    /// Satellite acceleration x-component in km per squared second (ECEF)
     pub acc_x_km: f64,
+
+    /// Satellite position x-component in km (ECEF)
     pub y_km: f64,
+
+    /// Satellite velocity y-component in km per second (ECEF)
     pub vel_y_km: f64,
+
+    /// Satellite acceleration y-component in km per squared second (ECEF)
     pub acc_y_km: f64,
+
+    /// Satellite position z-component in km (ECEF)
     pub z_km: f64,
+
+    /// Satellite velocity z-component in km per second (ECEF)
     pub vel_z_km: f64,
+
+    /// Satellite acceleration z-component in km per squared second (ECEF)
     pub acc_z_km: f64,
+
+    /// Satellite health flag
     pub sv_health: u8,
+
+    /// FDMA frequency channel
     pub freq_channel: i8,
+
+    /// Age of this ephemeris
     pub age_op_days: u8,
+
     pub leap_s: u8,
     pub tau_gps_s: f64,
     pub l1_l2_gd: f64,
 }
 
-impl GLOEphemeris {
-    pub(crate) const fn encoding_size() -> usize {
+impl GloEphemeris {
+    /// Returns total number of bytes required to encode [Self].
+    pub const fn encoding_size() -> usize {
         135
     }
-    pub(crate) fn encode(&self, big_endian: bool, buf: &mut [u8]) -> Result<usize, Error> {
+
+    /// Copies and returns [GloEphemeris] with updated clock offset (in seconds).
+    pub fn with_satellite_clock_offset(mut self, clock_offset: f64) -> Self {
+        self.clock_offset_s = clock_offset;
+    }
+
+    pub fn encode(&self, big_endian: bool, buf: &mut [u8]) -> Result<usize, Error> {
         let size = Self::encoding_size();
         if buf.len() < size {
             return Err(Error::NotEnoughBytes);
@@ -174,10 +216,11 @@ impl GLOEphemeris {
         Ok(135)
     }
 
-    pub(crate) fn decode(big_endian: bool, buf: &[u8]) -> Result<Self, Error> {
+    pub fn decode(big_endian: bool, buf: &[u8]) -> Result<Self, Error> {
         if buf.len() < Self::encoding_size() {
             return Err(Error::NotEnoughBytes);
         }
+
         // 1. PRN
         let slot = buf[0];
         // 2. DAY
@@ -246,14 +289,14 @@ mod test {
     #[test]
     fn eph_x00_x02_error() {
         let buf = [0; 100];
-        assert!(GLOEphemeris::decode(true, &buf).is_err());
+        assert!(GloEphemeris::decode(true, &buf).is_err());
     }
 
     #[test]
     fn glo_ephemeris() {
         for big_endian in [true, false] {
             let buf = [0; 135];
-            let eph = GLOEphemeris::decode(big_endian, &buf).unwrap();
+            let eph = GloEphemeris::decode(big_endian, &buf).unwrap();
 
             // test mirror
             let mut encoded = [0; 100];
@@ -264,7 +307,7 @@ mod test {
             assert_eq!(size, 135);
             assert_eq!(buf, encoded);
 
-            let eph = GLOEphemeris {
+            let eph = GloEphemeris {
                 t_k_sec: 0,
                 slot: 1,
                 day: 2,
@@ -291,7 +334,7 @@ mod test {
             let mut encoded = [0; 135];
             eph.encode(big_endian, &mut encoded).unwrap();
 
-            let decoded = GLOEphemeris::decode(big_endian, &encoded).unwrap();
+            let decoded = GloEphemeris::decode(big_endian, &encoded).unwrap();
             assert_eq!(eph, decoded);
         }
     }
