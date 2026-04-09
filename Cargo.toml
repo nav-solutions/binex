@@ -1,6 +1,6 @@
 [package]
 name = "binex"
-version = "0.5.1"
+version = "0.5.2"
 license = "MPL-2.0"
 authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
 description = "BINEX encoder and decoder for real-time GNSS"
