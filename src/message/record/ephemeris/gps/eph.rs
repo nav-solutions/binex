@@ -1,6 +1,6 @@
 use std::f32::consts::PI as Pi32;
 
-use crate::{utils::Utils, Error};
+use crate::{Error, utils::Utils};
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct GPSEphemeris {

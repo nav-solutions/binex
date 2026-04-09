@@ -1,5 +1,5 @@
 //! Monument Geodetic marker specific frames
-use crate::{utils::Utils, Error};
+use crate::{Error, utils::Utils};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct TemporalSolution {
@@ -11,11 +11,7 @@ pub struct TemporalSolution {
 
 impl TemporalSolution {
     pub(crate) fn encoding_size(&self) -> usize {
-        if self.drift_s_s.is_some() {
-            16
-        } else {
-            8
-        }
+        if self.drift_s_s.is_some() { 16 } else { 8 }
     }
     pub(crate) fn encode(&self, big_endian: bool, buf: &mut [u8]) -> Result<usize, Error> {
         let size = self.encoding_size();

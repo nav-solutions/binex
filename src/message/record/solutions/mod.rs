@@ -1,8 +1,8 @@
 //! Monument / Geodetic marker frames
 
 use crate::{
-    message::time::{decode_gpst_epoch, encode_epoch, TimeResolution},
     Error,
+    message::time::{TimeResolution, decode_gpst_epoch, encode_epoch},
 };
 
 pub use frame::{PositionEcef3d, PositionGeo3d, TemporalSolution, Velocity3d, VelocityNED3d};

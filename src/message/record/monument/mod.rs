@@ -1,11 +1,11 @@
 //! Monument / Geodetic marker frames
 
 use crate::{
-    message::{
-        time::{decode_gpst_epoch, encode_epoch, TimeResolution},
-        Message,
-    },
     Error,
+    message::{
+        Message,
+        time::{TimeResolution, decode_gpst_epoch, encode_epoch},
+    },
 };
 
 use hifitime::{Epoch, TimeScale};

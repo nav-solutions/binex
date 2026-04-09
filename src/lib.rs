@@ -21,6 +21,7 @@ pub(crate) mod utils;
 
 pub mod prelude {
     pub use crate::{
+        ClosedSourceMeta, Error,
         decoder::Decoder,
         message::{
             EphemerisFrame, GALEphemeris, GLOEphemeris, GPSEphemeris, GPSRaw, GeoStringFrame,
@@ -29,7 +30,6 @@ pub mod prelude {
             VelocityNED3d,
         },
         stream::{ClosedSourceElement, Provider, StreamElement},
-        ClosedSourceMeta, Error,
     };
     // re-export
     pub use hifitime::{Epoch, TimeScale};
