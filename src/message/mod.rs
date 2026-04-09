@@ -14,7 +14,7 @@ pub use meta::Meta;
 
 pub(crate) use mid::MessageID;
 
-use crate::{stream::Provider, ClosedSourceMeta, Error};
+use crate::{ClosedSourceMeta, Error, stream::Provider};
 use checksum::Checksum;
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -422,12 +422,12 @@ impl Message {
 #[cfg(test)]
 mod test {
     use super::Message;
+    use crate::Error;
     use crate::message::{
         EphemerisFrame, GALEphemeris, GPSEphemeris, GPSRaw, Meta, MonumentGeoMetadata,
         MonumentGeoRecord, PositionEcef3d, Record, Solutions, SolutionsFrame, Velocity3d,
     };
     use crate::prelude::Epoch;
-    use crate::Error;
 
     #[test]
     fn big_endian_bnxi() {

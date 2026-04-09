@@ -1,5 +1,5 @@
 //! Epoch encoding & decoding
-use crate::{utils::Utils, Error};
+use crate::{Error, utils::Utils};
 use hifitime::prelude::{Epoch, TimeScale, Unit};
 
 /// BINEX Time Resolution

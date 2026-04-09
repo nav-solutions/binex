@@ -1,7 +1,7 @@
 use binex::prelude::{
     EphemerisFrame, Epoch, Message, Meta, MonumentGeoMetadata, MonumentGeoRecord, Record,
 };
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 
 #[allow(unused_must_use)]
 pub fn criterion_benchmark(c: &mut Criterion) {

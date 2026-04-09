@@ -1,9 +1,9 @@
 //! Monument Geodetic marker specific frames
 use crate::{
-    message::{record::solutions::FieldID, Message},
+    Error,
+    message::{Message, record::solutions::FieldID},
     prelude::TimeScale,
     utils::Utils,
-    Error,
 };
 
 use std::str::from_utf8;

@@ -1,5 +1,5 @@
 //! Raw, Decoded, Modern Ephemeris and ionosphere models
-use crate::{message::Message, Error};
+use crate::{Error, message::Message};
 
 mod fid;
 use fid::FieldID;
