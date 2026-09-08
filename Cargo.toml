@@ -1,6 +1,6 @@
 [package]
 name = "binex"
-version = "0.5.2"
+version = "0.6.0"
 license = "MPL-2.0"
 authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
 description = "BINEX encoder and decoder for real-time GNSS"
@@ -30,7 +30,7 @@ md-5 = "0.10"
 thiserror = "2"
 lazy_static = "1"
 flate2 = { version = "1", optional = true }
-hifitime = { version = "4.2", features = ["serde", "std"] }
+hifitime = { version = "4", features = ["serde", "std"] }
 
 [dev-dependencies]
 criterion = "0.7.0"
